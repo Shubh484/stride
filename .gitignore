@@ -45,10 +45,8 @@ Thumbs.db
 # React Native & Mobile
 mobile/node_modules/
 mobile/.expo/
-mobile/android/.gradle/
-mobile/android/app/build/
-mobile/ios/Pods/
-mobile/ios/build/
+mobile/android/
+mobile/ios/
 *.mode1v3
 *.mode2v3
 *.moved-aside
