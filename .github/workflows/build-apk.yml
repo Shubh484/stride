@@ -1,0 +1,100 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'APK Build Variant'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+          - 'debug'
+          - 'release'
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-apk:
+    name: Build Android APK (${{ inputs.build_type || 'debug' }})
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Set up Java 17 (JDK)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prebuild native Android project via Expo
+        run: npx expo prebuild --platform android --clean
+
+      - name: Set up Gradle Cache
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          build-root-directory: mobile/android
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x android/gradlew
+
+      - name: Build Debug APK
+        if: ${{ (inputs.build_type || 'debug') == 'debug' }}
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Build Release APK
+        if: ${{ inputs.build_type == 'release' }}
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Locate Generated APK
+        id: locate_apk
+        run: |
+          APK_PATH=$(find android/app/build/outputs/apk -name "*.apk" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "Error: No APK found after build."
+            exit 1
+          fi
+          echo "Found APK at: $APK_PATH"
+          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+          echo "apk_name=$(basename $APK_PATH)" >> $GITHUB_OUTPUT
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fitness-app-${{ inputs.build_type || 'debug' }}-apk
+          path: mobile/${{ steps.locate_apk.outputs.apk_path }}
+          retention-days: 14
+
+      - name: Post Build Summary
+        run: |
+          echo "### 📱 Android APK Build Succeeded!" >> $GITHUB_STEP_SUMMARY
+          echo "- **Variant**: \`${{ inputs.build_type || 'debug' }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **File**: \`${{ steps.locate_apk.outputs.apk_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Artifact**: [Download Artifact](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
