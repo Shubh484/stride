@@ -1,0 +1,111 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+  workflow_dispatch:
+
+# Cancel redundant in-progress runs on the same branch/PR to save build minutes and speed up feedback
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # -------------------------------------------------------------
+  # Backend CI: Fast parallel execution with dependency caching
+  # -------------------------------------------------------------
+  backend-ci:
+    name: Backend (Tests & Build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run unit tests
+        run: npm run test -- --maxWorkers=2
+
+      - name: Run end-to-end tests
+        run: npm run test:e2e -- --maxWorkers=2
+
+      - name: Compile & Build NestJS application
+        run: npm run build
+
+  # -------------------------------------------------------------
+  # Mobile CI: Strict typechecking with dependency caching
+  # -------------------------------------------------------------
+  mobile-ci:
+    name: Mobile (Typecheck)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript typecheck
+        run: npm run typecheck
+
+  # -------------------------------------------------------------
+  # Docker CI: Validates Docker build with BuildKit layer cache
+  # -------------------------------------------------------------
+  docker-ci:
+    name: Docker Build & Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose Configuration
+        run: docker compose config --quiet
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Backend Docker Image (with GitHub Actions cache)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          target: development
+          push: false
+          tags: fitness-backend:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
