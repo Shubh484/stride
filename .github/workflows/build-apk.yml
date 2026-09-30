@@ -12,6 +12,8 @@ on:
           - 'debug'
           - 'release'
   push:
+    branches:
+      - 'develop'
     tags:
       - 'v*'
 
