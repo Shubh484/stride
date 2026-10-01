@@ -87,7 +87,16 @@ export class AuthService {
       });
     }
 
-    const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
+    let isPasswordValid = false;
+    try {
+      if (user.passwordHash && typeof user.passwordHash === 'string') {
+        isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
+      }
+    } catch (err) {
+      this.logger.warn(`Password comparison error for user ${user.id}: ${(err as Error).message}`);
+      isPasswordValid = false;
+    }
+
     if (!isPasswordValid) {
       throw new UnauthorizedException({
         code: 'INVALID_CREDENTIALS',
