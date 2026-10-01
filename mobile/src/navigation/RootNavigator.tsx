@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuthStore } from '../features/auth/auth.store';
+import { initApiBaseUrl } from '../services/api.client';
 import { AuthNavigator } from './AuthNavigator';
 import { MainNavigator } from './MainNavigator';
 import { RootStackParamList } from './types';
@@ -33,7 +34,8 @@ export function RootNavigator() {
   const initialize = useAuthStore((s) => s.initialize);
 
   useEffect(() => {
-    initialize();
+    // Load the persisted server URL before making any API calls
+    initApiBaseUrl().then(() => initialize());
   }, [initialize]);
 
   if (!isInitialized) {

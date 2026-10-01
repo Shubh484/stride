@@ -11,6 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useAuthStore } from './auth.store';
+import { ServerConfigBar } from './ServerConfigBar';
 
 interface Props {
   onSwitchToRegister: () => void;
@@ -53,6 +54,7 @@ export function LoginScreen({ onSwitchToRegister }: Props) {
         </View>
 
         <View style={styles.formContainer}>
+          <ServerConfigBar />
           <Text style={styles.title}>Welcome Back</Text>
 
           {error && (

@@ -11,6 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useAuthStore } from './auth.store';
+import { ServerConfigBar } from './ServerConfigBar';
 
 interface Props {
   onSwitchToLogin: () => void;
@@ -72,6 +73,7 @@ export function RegisterScreen({ onSwitchToLogin }: Props) {
         </View>
 
         <View style={styles.formContainer}>
+          <ServerConfigBar />
           <Text style={styles.title}>Create Account</Text>
 
           {error && (
