@@ -29,9 +29,45 @@ jobs:
       run:
         working-directory: backend
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: fitness_user
+          POSTGRES_PASSWORD: fitness_password
+          POSTGRES_DB: fitness_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://fitness_user:fitness_password@localhost:5432/fitness_db?schema=public
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+      JWT_SECRET: super_secret_social_fitness_jwt_key_32_chars_min!
+      JWT_EXPIRES_IN: 7d
+
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
+
+      - name: Create environment configuration
+        run: cp ../.env.example ../.env
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -45,6 +81,9 @@ jobs:
 
       - name: Generate Prisma Client
         run: npx prisma generate
+
+      - name: Apply database migrations
+        run: npx prisma migrate deploy
 
       - name: Run unit tests
         run: npm run test -- --maxWorkers=2
