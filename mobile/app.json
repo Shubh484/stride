@@ -24,6 +24,9 @@
     "ios": {
       "bundleIdentifier": "com.fitnessapp.social",
       "supportsTablet": true
-    }
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }
