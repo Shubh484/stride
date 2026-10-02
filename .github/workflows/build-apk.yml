@@ -41,11 +41,11 @@ jobs:
           cache: 'npm'
           cache-dependency-path: mobile/package-lock.json
 
-      - name: Set up Java 17 (JDK)
+      - name: Set up Java 21 (JDK)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: Accept Android SDK licenses
         run: |
