@@ -14,6 +14,7 @@
       "adaptiveIcon": {
         "backgroundColor": "#0f172a"
       },
+      "usesCleartextTraffic": true,
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
@@ -26,6 +27,7 @@
       "supportsTablet": true
     },
     "plugins": [
+      "expo-dev-client",
       "expo-secure-store",
       "expo-asset"
     ]

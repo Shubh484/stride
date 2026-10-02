@@ -11,6 +11,7 @@ on:
         options:
           - 'release'
           - 'debug'
+          - 'development'
   push:
     branches:
       - 'develop'
@@ -63,6 +64,12 @@ jobs:
 
       - name: Make Gradle wrapper executable
         run: chmod +x android/gradlew
+
+      - name: Build Development Client APK
+        if: ${{ inputs.build_type == 'development' }}
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Build Debug APK
         if: ${{ inputs.build_type == 'debug' }}

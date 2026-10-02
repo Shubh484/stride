@@ -61,10 +61,17 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
     ...(options.headers as Record<string, string>),
   };
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+    });
+  } catch (networkError: any) {
+    // Surface the actual error and the URL being called for easier debugging
+    const msg = networkError?.message || 'Unknown network error';
+    throw new Error(`Network error connecting to ${url}: ${msg}`);
+  }
 
   const body: ApiResponse<T> = await response.json();
 

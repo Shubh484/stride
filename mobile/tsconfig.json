@@ -2,7 +2,10 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "commonjs",
-    "lib": ["DOM", "ESNext"],
+    "lib": [
+      "DOM",
+      "ESNext"
+    ],
     "allowJs": true,
     "jsx": "react-native",
     "noEmit": true,
@@ -15,13 +18,29 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@features/*": ["src/features/*"],
-      "@components/*": ["src/components/*"],
-      "@hooks/*": ["src/hooks/*"],
-      "@services/*": ["src/services/*"],
-      "@navigation/*": ["src/navigation/*"],
-      "@types/*": ["src/types/*"]
+      "@features/*": [
+        "src/features/*"
+      ],
+      "@components/*": [
+        "src/components/*"
+      ],
+      "@hooks/*": [
+        "src/hooks/*"
+      ],
+      "@services/*": [
+        "src/services/*"
+      ],
+      "@navigation/*": [
+        "src/navigation/*"
+      ],
+      "@types/*": [
+        "src/types/*"
+      ]
     }
   },
-  "include": ["src/**/*", "App.tsx"]
+  "include": [
+    "src/**/*",
+    "App.tsx"
+  ],
+  "extends": "expo/tsconfig.base"
 }
